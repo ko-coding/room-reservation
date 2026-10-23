@@ -11,21 +11,9 @@
 	<groupId>com.example</groupId>
 	<artifactId>room-reservation</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name/>
-	<description/>
-	<url/>
-	<licenses>
-		<license/>
-	</licenses>
-	<developers>
-		<developer/>
-	</developers>
-	<scm>
-		<connection/>
-		<developerConnection/>
-		<tag/>
-		<url/>
-	</scm>
+	<name>room-reservation</name>
+	<description>予約会議システム（Spring Boot / PostgreSQL）</description>
+	<url>https://github.com/ko-coding/room-reservation</url>
 	<properties>
 		<java.version>17</java.version>
 	</properties>
