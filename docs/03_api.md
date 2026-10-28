@@ -424,7 +424,13 @@ GET /api/rooms?page=0&size=20&keyword=room&minCapacity=10
 ### 9. GET /api/rooms/{id}（会議室詳細情報取得）
 
 - 認証：必要（ADMIN, USER）
-- 説明：
+- 説明：パスパラメータで指定したIDの会議室詳細情報を取得する。
+
+**リクエスト例**
+
+```
+GET /api/rooms/1
+```
 
 **レスポンス 200 OK**
 
@@ -441,10 +447,10 @@ GET /api/rooms?page=0&size=20&keyword=room&minCapacity=10
 
 **エラー**
 
-| ステータス | 条件                     | code            |
-| ---------- | ------------------------ | --------------- |
-| 401        | トークンなし・無効       | UNAUTHENTICATED |
-| 404        | 対象リソースが存在しない |                 |
+| ステータス | 条件                           | code            |
+| ---------- | ------------------------------ | --------------- |
+| 401        | トークンなし・無効             | UNAUTHENTICATED |
+| 404        | 指定したidのroomが見つからない | ROOM_NOT_FOUND  |
 
 ### 10. PUT /api/rooms/{id}（会議室情報更新）
 
