@@ -5,7 +5,7 @@
 | 1   | POST     | /api/auth/register     | ユーザー登録           | 不要 | -           | 201  | 400, 409                |
 | 2   | POST     | /api/auth/login        | ログイン               | 不要 | -           | 200  | 400, 401                |
 | 3   | GET      | /api/users             | ユーザー一覧取得       | 必要 | ADMIN       | 200  | 400, 401, 403           |
-| 4   | GET      | /api/users/{id}        | ユーザー詳細情報取得   | 必要 | ADMIN, USER | 200  | 401, 404                |
+| 4   | GET      | /api/users/{id}        | ユーザー詳細情報取得   | 必要 | ADMIN, USER | 200  | 401, 403, 404           |
 | 5   | PUT      | /api/users/{id}        | ユーザー情報更新       | 必要 | USER        | 200  | 400, 401, 404           |
 | 6   | DELETE   | /api/users/{id}        | ユーザー情報削除       | 必要 | ADMIN       | 204  | 401, 403, 404, 409      |
 | 7   | POST     | /api/rooms             | 会議室登録             | 必要 | ADMIN       | 201  | 400, 401, 403           |
@@ -212,7 +212,13 @@ GET /api/users?page=0&size=20&email=example.com&name=user&role=USER
 ### 4. GET /api/users/{id}（ユーザー詳細情報取得）
 
 - 認証：必要（ADMIN, USER）
-- 説明：
+- 説明：パスパラメータで指定したIDのユーザー詳細情報を取得する。`USER` は自分の情報のみ取得可能。他人のユーザーIDを指定した場合は 403 を返す。IDは連番で存在を隠す必要性が低いため、404 には統一しない。（機密性が高いリソースでは 404 に統一する選択肢もある）
+
+**リクエスト例**
+
+```
+GET /api/users/1
+```
 
 **レスポンス 200 OK**
 
@@ -229,10 +235,11 @@ GET /api/users?page=0&size=20&email=example.com&name=user&role=USER
 
 **エラー**
 
-| ステータス | 条件                     | code            |
-| ---------- | ------------------------ | --------------- |
-| 401        | トークンなし・無効       | UNAUTHENTICATED |
-| 404        | 対象リソースが存在しない |                 |
+| ステータス | 条件                               | code            |
+| ---------- | ---------------------------------- | --------------- |
+| 401        | トークンなし・無効                 | UNAUTHENTICATED |
+| 403        | USERが他人の情報を取得しようとした | ACCESS_DENIED   |
+| 404        | 指定したidのuserが見つからない     | USER_NOT_FOUND  |
 
 ### 5. PUT /api/users/{id}（ユーザー情報更新）
 
