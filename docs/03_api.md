@@ -455,17 +455,27 @@ GET /api/rooms/1
 ### 10. PUT /api/rooms/{id}（会議室情報更新）
 
 - 認証：必要（ADMIN）
-- 説明：`name`, `capacity` は必須。`name` は 100 文字以内、`capacity` は 1 以上、`description` は 255 文字以内。`description` を省略すると `NULL` になる。
+- 説明：会議室の情報を、全項目まとめて置き換える。`description` を省略すると `NULL` になる。
 
-  **リクエスト**
+**リクエスト**
 
 ```json
+PUT /api/rooms/1
+
 {
   "name": "room_update",
   "description": "test room_update",
   "capacity": 100
 }
 ```
+
+**入力の制約**
+
+| 項目        | 必須 | 制約                               |
+| ----------- | ---- | ---------------------------------- |
+| name        | ○    | 1～100文字以内、空文字を許容しない |
+| description | -    | 0～255文字以内                     |
+| capacity    | ○    | 1 以上 100 以下の整数              |
 
 **レスポンス 200 OK**
 
@@ -482,12 +492,12 @@ GET /api/rooms/1
 
 **エラー**
 
-| ステータス | 条件               | code             |
-| ---------- | ------------------ | ---------------- |
-| 400        | 入力値不正         | VALIDATION_ERROR |
-| 401        | トークンなし・無効 | UNAUTHENTICATED  |
-| 403        | 参照権限不足       |                  |
-| 404        | 会議室が存在しない |                  |
+| ステータス | 条件                                               | code             |
+| ---------- | -------------------------------------------------- | ---------------- |
+| 400        | 入力制約に違反している（必須項目の欠落、形式不正） | VALIDATION_ERROR |
+| 401        | トークンなし・無効                                 | UNAUTHENTICATED  |
+| 403        | USERが操作しようとした                             | ACCESS_DENIED    |
+| 404        | 指定したidのroomが見つからない                     | ROOM_NOT_FOUND   |
 
 ### 11. DELETE /api/rooms/{id}（会議室情報削除）
 
