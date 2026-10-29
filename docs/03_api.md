@@ -660,7 +660,17 @@ GET /api/reservations/1
 ### 15. PATCH /api/reservations/{id}（予約キャンセル）
 
 - 認証：必要（ADMIN, USER）
-- 説明：`status` は `CANCELED` のみ受け付ける
+- 説明：パスパラメータで指定したIDの予約をキャンセルする。
+  - `USER` は自分の予約のみキャンセルできる。`ADMIN` は全員の予約をキャンセルできる。
+  - 状態は `RESERVED` → `CANCELED` に変わる。予約の行は削除せず、`status` を変えるだけにする（履歴を残すため）。`CANCELED` の予約は、重複判定の対象外になる（R-10）。
+  - キャンセルできるのは、予約の開始時刻の24時間前まで（R-04）。`ADMIN` も同じ（例外を作ると、実装・テストが複雑になるため）。
+  - エラーの判定順は、404（存在しない）→ 403（権限なし）→ 409 `RESERVATION_ALREADY_CANCELED`（状態）→ 409 `RESERVATION_CANCEL_NOT_ALLOWED`（期限）。キャンセル済みの予約は、期限に関係なく「キャンセル済み」を返す。
+
+**リクエスト例**
+
+```
+PATCH /api/reservations/1
+```
 
 **リクエスト**
 
@@ -670,6 +680,12 @@ GET /api/reservations/1
 }
 ```
 
+**入力の制約**
+
+| 項目   | 必須 | 制約            |
+| ------ | ---- | --------------- |
+| status | ○    | `CANCELED` のみ |
+
 **レスポンス 200 OK**
 
 ```json
@@ -678,21 +694,21 @@ GET /api/reservations/1
   "userId": 1,
   "roomId": 1,
   "title": "meeting",
-  "startAt": "2026-01-02T10:00:00+09:00",
-  "endAt": "2026-01-02T10:30:00+09:00",
-  "status": "CANCELED",
-  "createdAt": "2026-01-01T10:00:00+09:00",
-  "updatedAt": "2026-01-02T10:00:00+09:00"
+  "startAt": "2026-11-02T10:00:00+09:00",
+  "endAt": "2026-11-02T10:30:00+09:00",
+  "status": "RESERVED",
+  "createdAt": "2026-11-01T10:30:00+09:00",
+  "updatedAt": "2026-11-01T11:00:00+09:00"
 }
 ```
 
 **エラー**
 
-| ステータス | 条件                        | code                           |
-| ---------- | --------------------------- | ------------------------------ |
-| 400        | `status` が `CANCELED` 以外 | VALIDATION_ERROR               |
-| 401        | トークンなし・無効          | UNAUTHENTICATED                |
-| 403        | 他人の予約                  | ACCESS_DENIED                  |
-| 404        | 予約が存在しない            | RESERVATION_NOT_FOUND          |
-| 409        | 開始の24時間前を過ぎている  | RESERVATION_CANCEL_NOT_ALLOWED |
-| 409        | 既にキャンセル済み          | RESERVATION_ALREADY_CANCELED   |
+| ステータス | 条件                                      | code                           |
+| ---------- | ----------------------------------------- | ------------------------------ |
+| 400        | `status` が欠落、または `CANCELED` 以外   | VALIDATION_ERROR               |
+| 401        | トークンなし・無効                        | UNAUTHENTICATED                |
+| 403        | USER が他人の予約をキャンセルしようとした | ACCESS_DENIED                  |
+| 404        | 指定した id の reservation が見つからない | RESERVATION_NOT_FOUND          |
+| 409        | 開始の24時間前を過ぎている                | RESERVATION_CANCEL_NOT_ALLOWED |
+| 409        | 既にキャンセル済み                        | RESERVATION_ALREADY_CANCELED   |
