@@ -15,7 +15,7 @@
 | 11  | DELETE   | /api/rooms/{id}        | 会議室情報削除         | 必要 | ADMIN       | 204  | 401, 403, 404, 409      |
 | 12  | POST     | /api/reservations      | 会議室予約             | 必要 | ADMIN, USER | 201  | 400, 401, 404, 409      |
 | 13  | GET      | /api/reservations      | 会議室予約一覧取得     | 必要 | ADMIN, USER | 200  | 400, 401                |
-| 14  | GET      | /api/reservations/{id} | 会議室予約詳細情報取得 | 必要 | ADMIN, USER | 200  | 401, 404                |
+| 14  | GET      | /api/reservations/{id} | 会議室予約詳細情報取得 | 必要 | ADMIN, USER | 200  | 401, 403, 404           |
 | 15  | PATCH    | /api/reservations/{id} | 予約キャンセル         | 必要 | ADMIN, USER | 200  | 400, 401, 403, 404, 409 |
 
 ## 共通事項
@@ -625,7 +625,13 @@ GET /api/reservations?page=0&size=20&roomId=1&status=RESERVED
 ### 14. GET /api/reservations/{id}（会議室予約詳細情報取得）
 
 - 認証：必要（ADMIN, USER）
-- 説明：
+- 説明：パスパラメータで指定したIDの予約詳細情報を取得する。`USER` は自分の情報のみ取得可能。他人の予約IDを指定した場合は 403 を返す。IDは連番で存在を隠す必要性が低いため、404 には統一しない。（機密性が高いリソースでは 404 に統一する選択肢もある）
+
+**リクエスト例**
+
+```
+GET /api/reservations/1
+```
 
 **レスポンス 200 OK**
 
@@ -635,20 +641,21 @@ GET /api/reservations?page=0&size=20&roomId=1&status=RESERVED
   "userId": 1,
   "roomId": 1,
   "title": "meeting",
-  "startAt": "2026-01-02T10:00:00+09:00",
-  "endAt": "2026-01-02T10:30:00+09:00",
+  "startAt": "2026-11-02T10:00:00+09:00",
+  "endAt": "2026-11-02T10:30:00+09:00",
   "status": "RESERVED",
-  "createdAt": "2026-01-01T10:30:00+09:00",
-  "updatedAt": "2026-01-01T10:30:00+09:00"
+  "createdAt": "2026-11-01T10:30:00+09:00",
+  "updatedAt": "2026-11-01T10:30:00+09:00"
 }
 ```
 
 **エラー**
 
-| ステータス | 条件                     | code |
-| ---------- | ------------------------ | ---- |
-| 401        | トークンなし・無効       |      |
-| 404        | 対象リソースが存在しない |      |
+| ステータス | 条件                                  | code                  |
+| ---------- | ------------------------------------- | --------------------- |
+| 401        | トークンなし・無効                    | UNAUTHENTICATED       |
+| 403        | USERが他人の情報を取得しようとした    | ACCESS_DENIED         |
+| 404        | 指定したidのreservationが見つからない | RESERVATION_NOT_FOUND |
 
 ### 15. PATCH /api/reservations/{id}（予約キャンセル）
 
