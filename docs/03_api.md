@@ -14,7 +14,7 @@
 | 10  | PUT      | /api/rooms/{id}        | 会議室情報更新         | 必要 | ADMIN       | 200  | 400, 401, 403, 404      |
 | 11  | DELETE   | /api/rooms/{id}        | 会議室情報削除         | 必要 | ADMIN       | 204  | 401, 403, 404, 409      |
 | 12  | POST     | /api/reservations      | 会議室予約             | 必要 | ADMIN, USER | 201  | 400, 401, 404, 409      |
-| 13  | GET      | /api/reservations      | 会議室予約一覧取得     | 必要 | ADMIN, USER | 200  | 401                     |
+| 13  | GET      | /api/reservations      | 会議室予約一覧取得     | 必要 | ADMIN, USER | 200  | 400, 401                |
 | 14  | GET      | /api/reservations/{id} | 会議室予約詳細情報取得 | 必要 | ADMIN, USER | 200  | 401, 404                |
 | 15  | PATCH    | /api/reservations/{id} | 予約キャンセル         | 必要 | ADMIN, USER | 200  | 400, 401, 403, 404, 409 |
 
@@ -409,7 +409,7 @@ GET /api/rooms?page=0&size=20&keyword=room&minCapacity=10
   ],
   "page": 0,
   "size": 20,
-  "totalElements": 2,
+  "totalElements": 1,
   "totalPages": 1
 }
 ```
@@ -572,44 +572,55 @@ PUT /api/rooms/1
 ### 13. GET /api/reservations（会議室予約一覧取得）
 
 - 認証：必要（ADMIN, USER）
-- 説明：
+- 説明：予約を検索条件で絞り込み、ページ単位で返す。並び順は `id` の昇順で固定とする。ADMIN は全予約、USER は自分の予約のみ取得可能。
+
+**クエリパラメータ**
+
+| 名前   | 型      | 必須 | 既定値 | 説明                                             |
+| ------ | ------- | ---- | ------ | ------------------------------------------------ |
+| page   | integer | 任意 | 0      | ページ番号（0 始まり）。0 以上                   |
+| size   | integer | 任意 | 20     | 1 ページの件数。1〜100                           |
+| roomId | integer | 任意 | なし   | 1 以上の会議室ID                                 |
+| status | string  | 任意 | なし   | 会議室の予約状況（`RESERVED` または `CANCELED`） |
+
+**リクエスト例**
+
+```
+GET /api/reservations?page=0&size=20&roomId=1&status=RESERVED
+```
 
 **レスポンス 200 OK**
 
 ```json
 {
-  "reservations": [
+  "content": [
     {
       "id": 1,
       "userId": 1,
       "roomId": 1,
       "title": "meeting",
-      "startAt": "2026-01-02T10:00:00+09:00",
-      "endAt": "2026-01-02T10:30:00+09:00",
+      "startAt": "2026-11-02T10:00:00+09:00",
+      "endAt": "2026-11-02T10:30:00+09:00",
       "status": "RESERVED",
-      "createdAt": "2026-01-01T10:30:00+09:00",
-      "updatedAt": "2026-01-01T10:30:00+09:00"
-    },
-    {
-      "id": 2,
-      "userId": 2,
-      "roomId": 2,
-      "title": "meeting",
-      "startAt": "2026-01-02T10:00:00+09:00",
-      "endAt": "2026-01-02T10:30:00+09:00",
-      "status": "RESERVED",
-      "createdAt": "2026-01-01T10:30:00+09:00",
-      "updatedAt": "2026-01-01T10:30:00+09:00"
+      "createdAt": "2026-11-01T10:30:00+09:00",
+      "updatedAt": "2026-11-01T10:30:00+09:00"
     }
-  ]
+  ],
+  "page": 0,
+  "size": 20,
+  "totalElements": 1,
+  "totalPages": 1
 }
 ```
 
+- `roomId` に該当する予約がない場合（存在しない会議室を含む）は、`content: []`、`totalElements: 0` を返す。絞り込み条件は「一致するか」を見るもので、存在確認はしないため。
+
 **エラー**
 
-| ステータス | 条件               | code |
-| ---------- | ------------------ | ---- |
-| 401        | トークンなし・無効 |      |
+| ステータス | 条件                                                                                        | code             |
+| ---------- | ------------------------------------------------------------------------------------------- | ---------------- |
+| 400        | `page` が負、`size` が 1〜100 の範囲外、`roomId` が 1 未満、数値でない値、`status` の値不正 | VALIDATION_ERROR |
+| 401        | トークンなし・無効                                                                          | UNAUTHENTICATED  |
 
 ### 14. GET /api/reservations/{id}（会議室予約詳細情報取得）
 
