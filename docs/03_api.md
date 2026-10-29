@@ -696,7 +696,7 @@ PATCH /api/reservations/1
   "title": "meeting",
   "startAt": "2026-11-02T10:00:00+09:00",
   "endAt": "2026-11-02T10:30:00+09:00",
-  "status": "RESERVED",
+  "status": "CANCELED",
   "createdAt": "2026-11-01T10:30:00+09:00",
   "updatedAt": "2026-11-01T11:00:00+09:00"
 }
